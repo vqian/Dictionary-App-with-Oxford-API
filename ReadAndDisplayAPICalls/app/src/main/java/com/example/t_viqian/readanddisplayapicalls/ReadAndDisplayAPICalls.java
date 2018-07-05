@@ -14,11 +14,13 @@ import java.net.URL;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ReadAndDisplayAPICalls extends AppCompatActivity {
     Dialog myDialog;
     TextView wordDisplay, partOfSpeechDisplay, definitionDisplay;
-    String word = "test", definition = "default definition", partOfSpeech = "noun";
+    String word = "test", rootWord = "new", definition = "default definition", partOfSpeech = "verb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,14 +57,42 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
         myDialog.show();
     }
 
+    private void parseJSONInflections(String result){ // DOESN'T WORK YET
+        try {
+            JSONObject jObject = (new JSONObject(result)).getJSONObject("results");
+            partOfSpeech = jObject.getString("lexicalCategory");
+            rootWord = jObject.getJSONObject("inflectionOf").getString("id");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void parseJSONDefinitions(String result){ // DOESN'T WORK YET
+        try {
+            JSONObject jObject = (new JSONObject(result)).getJSONObject("definitions");
+            definition = jObject.getString("id");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void callAPI(){ // needs method for API call to run on tread correctly
         new CallbackTask().execute(inflections());
+        parseJSONInflections(rootWord);
+        new CallbackTask().execute(dictionaryEntries());
+        parseJSONDefinitions(definition);
     }
 
     private String inflections() {
         final String language = "en";
         final String word_id = word.toLowerCase(); //word id is case sensitive and lowercase is required
         return "https://od-api.oxforddictionaries.com:443/api/v1/inflections/" + language + "/" + word_id;
+    }
+
+    private String dictionaryEntries() {
+        final String language = "en";
+        final String word_id = rootWord.toLowerCase(); //word id is case sensitive and lowercase is required
+        return "https://od-api.oxforddictionaries.com:443/api/v1/entries/" + language + "/" + word_id;
     }
 
     //in android calling network requests on the main thread forbidden by default
@@ -113,6 +143,7 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
+            rootWord = result;
             definition = result;
         }
     }
