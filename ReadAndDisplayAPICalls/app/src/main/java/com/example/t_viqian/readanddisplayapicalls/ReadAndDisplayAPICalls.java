@@ -16,6 +16,9 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 import org.json.*;
 
+import com.example.t_viqian.readanddisplayapicalls.Definition;
+import com.example.t_viqian.readanddisplayapicalls.UDParser;
+
 public class ReadAndDisplayAPICalls extends AppCompatActivity {
     Dialog myDialog;
     TextView wordDisplay, partOfSpeechDisplay, definitionDisplay;
@@ -30,40 +33,25 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
         setContentView(R.layout.activity_read_and_display_apicalls);
     }
 
-    public void ShowPopup(View v) {
+    public void ShowPopup(View v) throws JSONException {
         word = ((EditText)findViewById(R.id.wordInput)).getText().toString();
         callAPI();
-
-        TextView txtclose;
-        myDialog.setContentView(R.layout.custompopup);
-        txtclose =(TextView) myDialog.findViewById(R.id.txtclose);
-        txtclose.setText("X");
-        txtclose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
-        myDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-        wordDisplay=(TextView)myDialog.findViewById(R.id.wordDisplay);
-        partOfSpeechDisplay=(TextView)myDialog.findViewById(R.id.partOfSpeechDisplay);
-        definitionDisplay=(TextView)myDialog.findViewById(R.id.definitionDisplay);
-        definitionDisplay.setMovementMethod(new ScrollingMovementMethod());
-        wordDisplay.setText(word);
-        partOfSpeechDisplay.setText(partOfSpeech.toLowerCase().charAt(0) + ".");
-        if(rootWord.equals(word)){
-            definitionDisplay.setText(definition);
-        }   else{
-            definitionDisplay.setText(rootWord.toUpperCase() + ": " + definition);
-        }
-
-        myDialog.show();
+        //callUDAPI();
     }
 
     private void callAPI(){ // needs method for API call to run on thread correctly
         new CallbackTask().execute(inflections());
-        new CallbackTask().execute(dictionaryEntries());
+
+    }
+
+    private void callUDAPI() throws JSONException {
+        UDParser udparser = new UDParser("http://api.urbandictionary.com/v0/");
+        String JSONData = udparser.getJSONData(word);
+        Definition[] test = udparser.getDefinitionsWithJSONData(JSONData);
+        for(int i = 0; i < test.length; i++)
+        {
+            definition += "WORD: " + test[i].getWordName() + " DEFINITION: " + test[i].getDefinition() + "/n";
+        }
     }
 
     private String inflections() {
@@ -149,9 +137,41 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
 
             if(rootWordFound){
                 definition = parseJSONDefinitions(result);
+
+                TextView txtclose;
+                myDialog.setContentView(R.layout.custompopup);
+                txtclose =(TextView) myDialog.findViewById(R.id.txtclose);
+                txtclose.setText("X");
+                txtclose.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        myDialog.dismiss();
+                        rootWordFound = false;
+                    }
+                });
+                myDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+                wordDisplay=(TextView)myDialog.findViewById(R.id.wordDisplay);
+                partOfSpeechDisplay=(TextView)myDialog.findViewById(R.id.partOfSpeechDisplay);
+                definitionDisplay=(TextView)myDialog.findViewById(R.id.definitionDisplay);
+                definitionDisplay.setMovementMethod(new ScrollingMovementMethod());
+                wordDisplay.setText(word);
+                if(!(partOfSpeech.equals("Verb")||partOfSpeech.equals("Noun"))){
+                    partOfSpeechDisplay.setText(partOfSpeech.toLowerCase().substring(0,3) + ".");
+                } else{
+                    partOfSpeechDisplay.setText(partOfSpeech.toLowerCase().charAt(0) + ".");
+                }
+                if(rootWord.equals(word)){
+                    definitionDisplay.setText(definition);
+                }   else{
+                    definitionDisplay.setText(rootWord.toUpperCase() + ": " + definition);
+                }
+
+                myDialog.show();
             } else{
                 rootWord = parseJSONInflections(result);
                 rootWordFound = true;
+                new CallbackTask().execute(dictionaryEntries());
             }
         }
     }
