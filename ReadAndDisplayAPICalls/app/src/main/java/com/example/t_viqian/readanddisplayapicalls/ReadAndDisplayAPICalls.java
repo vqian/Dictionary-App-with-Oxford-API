@@ -20,8 +20,7 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
     Dialog myDialog;
     TextView wordDisplay, partOfSpeechDisplay, definitionDisplay;
     String word = "test", rootWord = "new", definition = "default definition", partOfSpeech = "unknown";
-    String inflectionsJSON = "default", definitionsJSON = "default";
-    Boolean rootWordFound = false;
+    static Boolean rootWordFound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,44 +46,24 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
         });
         myDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        wordDisplay=(TextView)myDialog.findViewById(R.id.wordDisplay); //NEW
+        wordDisplay=(TextView)myDialog.findViewById(R.id.wordDisplay);
         partOfSpeechDisplay=(TextView)myDialog.findViewById(R.id.partOfSpeechDisplay);
         definitionDisplay=(TextView)myDialog.findViewById(R.id.definitionDisplay);
         definitionDisplay.setMovementMethod(new ScrollingMovementMethod());
         wordDisplay.setText(word);
-        partOfSpeechDisplay.setText(partOfSpeech.charAt(0) + ".");
-        definitionDisplay.setText(definition); //NEW
+        partOfSpeechDisplay.setText(partOfSpeech.toLowerCase().charAt(0) + ".");
+        if(rootWord.equals(word)){
+            definitionDisplay.setText(definition);
+        }   else{
+            definitionDisplay.setText(rootWord.toUpperCase() + ": " + definition);
+        }
 
         myDialog.show();
     }
 
-    private void parseJSONInflections(String result){ // DOESN'T WORK YET
-        try {
-            JSONObject jObject = (new JSONObject(result)).getJSONObject("results");
-            partOfSpeech = jObject.getString("lexicalCategory");
-            rootWord = jObject.getJSONObject("inflectionOf").getString("id");
-        } catch (JSONException e) {
-            rootWord = "error"; // TEMP
-            e.printStackTrace();
-        }
-    }
-
-    private void parseJSONDefinitions(String result){ // DOESN'T WORK YET
-        try {
-            JSONObject jObject = (new JSONObject(result)).getJSONObject("definitions");
-            definition = jObject.getString("id");
-        } catch (JSONException e) {
-            definition = result; // TEMP
-            e.printStackTrace();
-        }
-    }
-
     private void callAPI(){ // needs method for API call to run on thread correctly
         new CallbackTask().execute(inflections());
-        rootWordFound = true;
-        //parseJSONInflections(inflectionsJSON);
         new CallbackTask().execute(dictionaryEntries());
-        //parseJSONDefinitions(definitionsJSON);
     }
 
     private String inflections() {
@@ -105,8 +84,6 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-
-            //TODO: replace with your own app id and app key
             final String app_id = "5091ae41";
             final String app_key = "79df4260fc4b69036f1a12382579c626";
 
@@ -143,24 +120,26 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
             }
         }
 
-        private String parseJSONInflections(String result){ // DOESN'T WORK YET, REMOVE?
+        private String parseJSONInflections(String result){
             try {
-                JSONObject jObject = (new JSONObject(result)).getJSONObject("results");
+                JSONObject jObject = (new JSONObject(result)).getJSONArray("results").getJSONObject(0).getJSONArray("lexicalEntries").getJSONObject(0);
+                JSONObject jObject1 = jObject.getJSONArray("inflectionOf").getJSONObject(0);
                 partOfSpeech = jObject.getString("lexicalCategory");
-                return jObject.getJSONObject("inflectionOf").getString("id");
+                return jObject1.getString("id");
             } catch (JSONException e) {
                 e.printStackTrace();
-                return "error"; // TEMP
+                return "error";
             }
         }
 
-        private String parseJSONDefinitions(String result){ // DOESN'T WORK YET, REMOVE?
+        private String parseJSONDefinitions(String result){ // DOESN'T WORK YET
             try {
-                JSONObject jObject = (new JSONObject(result)).getJSONObject("definitions");
-                return jObject.getString("id");
+                JSONArray jArray = (new JSONObject(result)).getJSONArray("results").getJSONObject(0).getJSONArray("lexicalEntries").getJSONObject(0).getJSONArray("entries");
+                JSONArray jArray1 = jArray.getJSONObject(0).getJSONArray("senses").getJSONObject(0).getJSONArray("definitions");
+                return jArray1.getString(0);
             } catch (JSONException e) {
                 e.printStackTrace();
-                return result; // TEMP
+                return result;
             }
         }
 
@@ -168,13 +147,12 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            if(!rootWordFound){
-                rootWord = parseJSONInflections(result);
-            }else{
+            if(rootWordFound){
                 definition = parseJSONDefinitions(result);
+            } else{
+                rootWord = parseJSONInflections(result);
+                rootWordFound = true;
             }
-            //inflectionsJSON = result;
-            //definitionsJSON = result;
         }
     }
 }
