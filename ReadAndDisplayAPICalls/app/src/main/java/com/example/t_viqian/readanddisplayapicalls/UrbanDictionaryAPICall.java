@@ -64,7 +64,11 @@ public class UrbanDictionaryAPICall {
         private String parseUDJSON(String UDJSON){
             try {
                 JSONObject jObject = (new JSONObject(UDJSON)).getJSONArray("list").getJSONObject(0);
-                return jObject.getString("definition");
+                if(jObject.getString("example").equals("")){
+                    return "DEFINITION: " + jObject.getString("definition");
+                } else{
+                    return "DEFINITION: " + jObject.getString("definition") + "\n" + "EXAMPLES: " + jObject.getString("example");
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
                 return UDJSON;
