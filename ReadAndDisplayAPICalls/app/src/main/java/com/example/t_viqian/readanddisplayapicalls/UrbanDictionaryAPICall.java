@@ -7,7 +7,6 @@ import android.os.AsyncTask;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -16,8 +15,6 @@ import java.net.URL;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
-
-import com.example.t_viqian.readanddisplayapicalls.ReadAndDisplayAPICalls;
 
 public class UrbanDictionaryAPICall {
     Dialog myDialog;

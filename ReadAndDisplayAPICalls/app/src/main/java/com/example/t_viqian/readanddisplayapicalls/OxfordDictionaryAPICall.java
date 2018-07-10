@@ -17,8 +17,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
-import com.example.t_viqian.readanddisplayapicalls.ReadAndDisplayAPICalls;
-
 public class OxfordDictionaryAPICall {
     Dialog myDialog;
     TextView wordDisplay, partOfSpeechDisplay, definitionDisplay;
