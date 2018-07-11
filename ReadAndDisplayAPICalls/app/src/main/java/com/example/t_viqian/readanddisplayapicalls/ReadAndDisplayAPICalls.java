@@ -9,7 +9,6 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.*;
 import android.widget.*;
-import org.json.*;
 
 public class ReadAndDisplayAPICalls extends AppCompatActivity {
     Dialog myDialog;
@@ -34,10 +33,12 @@ public class ReadAndDisplayAPICalls extends AppCompatActivity {
                 @Override
                 public void onClick(View textView) {
                     word = redactedWord;
-                    //OxfordDictionaryAPICall OxfordCall = new OxfordDictionaryAPICall();
-                    //OxfordCall.callAPI(myDialog, word);
-                    UrbanDictionaryAPICall UDCall = new UrbanDictionaryAPICall();
-                    UDCall.callUDAPI(myDialog, word);
+                    //BingDictionaryAPICall BingCall = new BingDictionaryAPICall();
+                    //BingCall.callBingAPI(myDialog, word);
+                    OxfordDictionaryAPICall OxfordCall = new OxfordDictionaryAPICall();
+                    OxfordCall.callAPI(myDialog, word);
+                    //UrbanDictionaryAPICall UDCall = new UrbanDictionaryAPICall();
+                    //UDCall.callUDAPI(myDialog, word);
                 }
             };
             ss.setSpan(wordSpan, startIndex, startIndex + parsedWord.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
